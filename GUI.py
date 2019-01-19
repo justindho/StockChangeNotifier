@@ -78,6 +78,9 @@ class GUI:
         self.percent_change_entry = tk.Entry(self.mid_row, justify='left', \
                                              font='Times 20', takefocus=1)
         
+        #allow execution of get_current_price_button on 'Enter'
+        self.get_current_price_button.bind('<Return>', self.lookup_current_price)
+        
         #layout the widgets for the middle row
         self.add_ticker_label.grid(row=0, column=0, sticky='we')
         self.add_ticker_entry.grid(row=0, column=1, sticky='we')
@@ -119,14 +122,14 @@ class GUI:
         self.add_ticker_button.bind('<Tab>', focus_next_widget)
         self.remove_ticker_button.bind('<Tab>', focus_next_widget)
         
-        #set initial focus to see_stock_list_button
-        self.see_stock_list_button.focus()  
+        #set initial focus to add_ticker_entry
+        self.add_ticker_entry.focus()  
         
     def lookup_current_price(self):
         """handle get_current_price_button button click to get stock price"""
         symbol = self.add_ticker_entry.get()
         self.add_price_entry.delete(0, 'end')
-        self.add_price_entry.insert(0, lookup(symbol)['price'])
+        self.add_price_entry.insert(0, usd(lookup(symbol)['price']))
     
         
     #add validation to Entry widgets
@@ -139,8 +142,11 @@ class GUI:
 def focus_next_widget(event):
     """allow user to tab to next widget"""
     event.widget.tk_focusNext().focus()
+    event.bind('<FocusIn>', highlight_all)
     return('break')        
     
-
+def highlight_all(event):
+    """highlight all text in when tabbing into an Entry widget"""
+    event.selection_range(0, 'end')
     
     
