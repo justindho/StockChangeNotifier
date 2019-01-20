@@ -14,6 +14,7 @@ except ImportError:
     from tkinter import messagebox
     
 from helpers import lookup, usd
+import sqlite3 as sql
 
 class GUI:
     def __init__(self):
@@ -134,7 +135,7 @@ class GUI:
         try:
             symbol = self.add_ticker_entry.get()
             self.add_price_entry.delete(0, 'end')
-            self.add_price_entry.insert(0, usd(lookup(symbol)['price']))
+            self.add_price_entry.insert(0, lookup(symbol)['price'])
         except TypeError:
             tk.messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
                                     'User must enter a valid ticker symbol.')
@@ -145,19 +146,32 @@ class GUI:
         percent = self.percent_change_entry.get()
         if len(symbol) == 0 or len(price) == 0 or len(percent) == 0:
             tk.messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
-                                   "'TICKER SYMBOL' AND 'PRICE' ARE REQUIRED "
-                                   "FIELDS")
-#        elif symbol == None or price == None or percent == None:
-#            tk.messagebox.showinfo("ERROR: 'TICKER SYMBOL' AND 'PRICE' ARE \
-#                                   REQUIRED FIELDS")
+                                   "'Ticker Symbol', 'Price', and '% Change to"
+                                   " notify are required fields.")
+        else: #add ticker to tickers.db
+            connection = sql.connect('tickers.db')  #create connection to tickers.db
+            cursor = connection.cursor()    #create cursor to traverse tickers.db
+            print('symbol is of type: ', type(symbol))
+            cursor.execute("""INSERT INTO symbols (ticker_number, 
+            ticker, price) VALUES (?, ?, ?);""", (None, symbol, price)) #add changes for commital
+            connection.commit() #commit changes to connection
+            connection.close()  #close connection
+            
     
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
+        symbol = self.add_price_entry.get()
         pass
     
     def see_list(self):
         """See stock watchlist"""
         pass       
+    
+    def check_percent(self):
+        """Checks current ticker symbol price to see if price is outside 
+        user-defined range"""
+        pct = self.percent_change_entry.get()
+        pass
         
         
 def focus_next_widget(event):

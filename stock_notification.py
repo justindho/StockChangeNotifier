@@ -11,21 +11,28 @@ by more than a user-specified percentage.
 import GUI
 import helpers
 import sqlite3 as sql
+import os
 
 #import library for sending push notifications to browser, Android, or iOS 
     #and/or Windows 10 device
 #from pushsafer import init, Client    
   
 if __name__ == '__main__':  
-    connection = sql.connect('tickers.db')
-    cursor= connection.cursor()
-    create_sql_db = """
-    CREATE TABLE symbols (
-    ticker_number INTEGER PRIMARY KEY, 
-    ticker TEXT, 
-    price REAL);"""           
-    cursor.execute(create_sql_db)
+    #create SQL database to store user's stock market information if not 
+    #   created already
+    if not os.path.exists('tickers.db'):
+        connection = sql.connect('tickers.db')
+        cursor= connection.cursor()
+        create_sql_db = """
+        CREATE TABLE symbols (
+        ticker_number INTEGER PRIMARY KEY, 
+        ticker TEXT, 
+        price REAL);"""           
+        cursor.execute(create_sql_db)   #create table 'symbols'
+        connection.commit()
+        connection.close() 
+        
 
-                                                                                     
+    #run GUI application                                                                                     
     app = GUI.GUI()
     app.root.mainloop()
