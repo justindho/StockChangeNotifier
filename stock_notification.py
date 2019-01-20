@@ -25,8 +25,7 @@ if __name__ == '__main__':
         cursor= connection.cursor()
         create_sql_db = """
         CREATE TABLE symbols (
-        ticker_number INTEGER PRIMARY KEY, 
-        ticker TEXT, 
+        ticker TEXT PRIMARY KEY, 
         price REAL,
         pct_dec REAL,
         pct_inc REAL,
