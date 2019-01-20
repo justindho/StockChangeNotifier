@@ -131,7 +131,8 @@ class GUI:
         
     def lookup_current_price(self):
         """Handle get_current_price_button button click to get stock price. 
-        Will return error message upon invalid ticker symbol or empty string"""
+        Will return error message upon invalid ticker symbol or empty string
+        """
         try:
             symbol = self.add_ticker_entry.get()
             self.add_price_entry.delete(0, 'end')
@@ -151,17 +152,27 @@ class GUI:
         else: #add ticker to tickers.db
             connection = sql.connect('tickers.db')  #create connection to tickers.db
             cursor = connection.cursor()    #create cursor to traverse tickers.db
-            print('symbol is of type: ', type(symbol))
-            cursor.execute("""INSERT INTO symbols (ticker_number, 
-            ticker, price) VALUES (?, ?, ?);""", (None, symbol, price)) #add changes for commital
+            cursor.execute("INSERT INTO symbols (ticker_number, "
+            "ticker, price) VALUES (?, ?, ?);", (None, symbol, price)) #add changes for commital
             connection.commit() #commit changes to connection
             connection.close()  #close connection
             
     
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
-        symbol = self.add_price_entry.get()
-        pass
+        symbol = self.add_ticker_entry.get()
+        connection = sql.connect('tickers.db')
+        cursor = connection.cursor()
+        cursor.execute("SELECT count(*) FROM symbols WHERE ticker=?", (symbol,))
+        data = cursor.fetchone()[0]
+        if data == 0:
+            tk.messagebox.showinfo("REMOVAL ERROR", \
+                                   "Ticker doesn't exist in your watchlist.")
+        else:
+            cursor.execute("DELETE FROM symbols WHERE ticker=?;", (symbol,))
+        connection.commit()
+        connection.close()            
+        
     
     def see_list(self):
         """See stock watchlist"""
@@ -169,7 +180,8 @@ class GUI:
     
     def check_percent(self):
         """Checks current ticker symbol price to see if price is outside 
-        user-defined range"""
+        user-defined range
+        """
         pct = self.percent_change_entry.get()
         pass
         
