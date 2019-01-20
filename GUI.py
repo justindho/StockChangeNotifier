@@ -13,8 +13,7 @@ except ImportError:
     import tkinter as tk
     from tkinter import messagebox
     
-from helpers import lookup, usd
-import sqlite3 as sql
+from helpers import lookup, usd, create_connection, close_connection
 
 class GUI:
     def __init__(self):
@@ -173,41 +172,43 @@ class GUI:
                                    "'Ticker Symbol', 'Price', and '% Change to"
                                    " notify are required fields.")
         else: #add ticker to tickers.db
-            connection = sql.connect('tickers.db')  #create connection to tickers.db
-            cursor = connection.cursor()    #create cursor to traverse tickers.db
+            db = create_connection('tickers.db')
+            cursor = db.cursor()    #create cursor to traverse tickers.db
             cursor.execute("""INSERT INTO symbols (ticker, price, pct_dec, pct_inc,
             price_low, price_high) VALUES (?, ?, ?, ?, ?, ?);""", \
             (symbol, price, pct_dec, pct_inc, price_low, price_high)) #add changes for commital
-            connection.commit() #commit changes to connection
-            connection.close()  #close connection
+            
+            close_connection(db)
             
     
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
         symbol = self.add_ticker_entry.get().upper()
-        connection = sql.connect('tickers.db')
-        cursor = connection.cursor()
-        cursor.execute("SELECT count(*) FROM symbols WHERE ticker=?", (symbol,))
+        db = create_connection('tickers.db')
+        cursor = db.cursor()
+        cursor.execute("""SELECT count(*) FROM symbols WHERE ticker=?""", (symbol,))
         data = cursor.fetchone()[0]
+        
         if data == 0:
             tk.messagebox.showinfo("REMOVAL ERROR", \
                                    "Ticker doesn't exist in your watchlist.")
         else:
             cursor.execute("DELETE FROM symbols WHERE ticker=?;", (symbol,))
-        connection.commit()
-        connection.close()            
+        
+        close_connection(db)          
         
     
     def see_list(self):
-        """See stock watchlist"""
+        """Creates table of watchlist to present to the user"""
         top = tk.Toplevel()
         top.title('Your watchlist')        
         (w, h) = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
-        top.geometry('{}x{}'.format(round(w/2), round(h/2)))
+        top.geometry('{}x{}'.format(w, h))
         
         #create containers for widgets
-        top_row = tk.Frame(top, width=w, height=round(h*.9))
-        bot_row = tk.Frame(top, width=w, height=round(h*.1))
+        top_row = tk.Frame(top, width=w, height=round(h*.075), bg='blue')
+        mid_row = tk.Frame(top, width=w, height=round(h*.75), bg='green')
+        bot_row = tk.Frame(top, width=w, height=round(h*.075), bg='red')
         
         #layout containers
         top.grid_rowconfigure(0, weight=1)
@@ -215,26 +216,73 @@ class GUI:
         top.grid_columnconfigure(0, weight=1)
         top.grid_columnconfigure(1, weight=0)
         top_row.grid(row=0, columnspan=1)
-        bot_row.grid(row=0, columnspan=1)
+        mid_row.grid(row=1, columnspan=1)
+        bot_row.grid(row=2, columnspan=1)
         
-        #create widget for displaying ticker watchlist
+        #open connection to tickers.db
+        db = create_connection('tickers.db')
+        cursor = db.cursor()
         
+        #create widgets for displaying ticker watchlist
+        cursor.execute("""SELECT COUNT(*) FROM symbols""")
+        num_rows = cursor.fetchone()[0]
+        cursor.execute("""SELECT * FROM symbols""")
+        col_names = [name[0] for name in cursor.description] #get column headers
+        col_names = list(map(lambda x:x.upper(), col_names)) #convert headers to uppercase
+        num_cols = len(col_names)
         
-        #layout widget for displaying ticker watchlist
-        
+        #create "table" of user's watchlist for display
+        title = tk.Label(top_row, text='Your Watchlist', font='Times 40', bd=10, \
+                         fg='black', bg='green', relief='raised')
+        title.grid(row=0)
+        for col_name in range(num_cols):
+            h = tk.Label(mid_row, text=col_names[col_name], font='Times 20', \
+                         fg='black', bg='yellow', relief='sunken', bd=3)
+            h.grid(row=0, column=col_name)
+        cursor.execute("""SELECT ticker FROM symbols""")
+        portfolio = cursor.fetchall()        
+        for row in range(num_rows):
+            ticker = portfolio[row][0]
+            cursor.execute("""SELECT * FROM symbols WHERE ticker=?""", (ticker,))
+            ticker_info = cursor.fetchall()
+            for col in range(num_cols):                                
+                text = ticker_info[0][col]
+                b = tk.Label(mid_row, text=text, bd=1, fg='black', \
+                             font='Times 20', bg='yellow', relief='sunken', \
+                             padx=20, pady=10)
+                b.grid(row=row+1, column=col)
         
         #create 'dismiss' button
         dismiss_button = tk.Button(bot_row, text='Dismiss', command=top.destroy, \
-                                   takefocus=1, anchor='s')
+                                   font='Times 20', takefocus=1)
         #layout 'dismiss' button
-        dismiss_button.grid(row=1)
+        dismiss_button.grid(row=0)
+        
+        #save changes to tickers.db and close connection
+        close_connection(db)
         
     
-    def check_percent(self):
+    def check_price(self, symbol):
         """Checks current ticker symbol price to see if price is outside 
         user-defined range
         """
-        pct = self.percent_change_entry.get()
+        current_price = lookup(symbol)['price']
+        db = create_connection('tickers.db')
+        cursor = dbcursor()
+        cursor.execute("""SELECT (price_low, price_high) FROM symbols 
+                       WHERE symbol=?""", (symbol,))
+        price_low, price_high = cursor.fetchone()[0], cursor.fetchone[1]
+        if current_price < price_low:
+            #TODO (twilio)
+            #send user a notification that lower bound has been exceeded
+            pass
+        elif current_price > price_high:
+            pass
+            #TODO (twilio)
+            #send user a notification that upper bound has been exceeded
+            #does check_price need to run every second???? how to do this???
+        
+        close_connection(db)
         pass
         
         
@@ -247,8 +295,4 @@ def focus_next_widget(event):
 def highlight_all(event):
     """highlight all text in when tabbing into an Entry widget"""
     event.selection_range(0, 'end')
-    
 
-    
-    
-    
