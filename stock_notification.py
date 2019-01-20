@@ -27,7 +27,11 @@ if __name__ == '__main__':
         CREATE TABLE symbols (
         ticker_number INTEGER PRIMARY KEY, 
         ticker TEXT, 
-        price REAL);"""           
+        price REAL,
+        pct_dec REAL,
+        pct_inc REAL,
+        price_low REAL,
+        price_high REAL);"""           
         cursor.execute(create_sql_db)   #create table 'symbols'
         connection.commit()
         connection.close() 
