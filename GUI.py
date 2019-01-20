@@ -126,10 +126,15 @@ class GUI:
         self.add_ticker_entry.focus()  
         
     def lookup_current_price(self):
-        """handle get_current_price_button button click to get stock price"""
-        symbol = self.add_ticker_entry.get()
-        self.add_price_entry.delete(0, 'end')
-        self.add_price_entry.insert(0, usd(lookup(symbol)['price']))
+        """Handle get_current_price_button button click to get stock price. 
+        Will return error message upon invalid ticker symbol or empty string"""
+        try:
+            symbol = self.add_ticker_entry.get()
+            self.add_price_entry.delete(0, 'end')
+            self.add_price_entry.insert(0, usd(lookup(symbol)['price']))
+        except TypeError:
+            tk.messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
+                                    'User must enter a valid ticker symbol.')
     
         
     #add validation to Entry widgets
