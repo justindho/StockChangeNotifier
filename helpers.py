@@ -8,11 +8,19 @@ Created on Wed Jan 16 19:13:25 2019
 import requests
 import urllib.parse
 import sqlite3 as sql
+from twilio.rest import Client
+
+# Your Account SID from twilio.com/console
+account_sid = os.environ['TWILIO_ACCOUNT_SID']
+# Your Auth Token from twilio.com/console
+auth_token  = os.environ['auth_token']
+
+client = Client(account_sid, auth_token)
 
 def lookup(symbol):
-    """Look up quote for symbol.
-    :param symbol: ticker symbol to lookup
-    :return: dictionary of ticker symbol's name, price, and symbol
+    """ Look up quote for symbol.
+        :param symbol: ticker symbol to lookup
+        :return: dictionary of ticker symbol's name, price, and symbol
     """
     
     #Contact API
@@ -34,7 +42,7 @@ def lookup(symbol):
         return None
           
 def usd(value):
-    """Format value as USD"""
+    """ Format value as USD """
     return f"${value:,.2f}"  
 
 def create_connection(db_file):
@@ -64,3 +72,6 @@ def close_connection(connection):
         print(e)
         
     return None  
+
+def send_sms():
+    """ 
