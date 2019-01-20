@@ -21,7 +21,6 @@ class GUI:
         #configure the root window
         self.root = tk.Tk()
         self.root.title('Stock Change Notifier')
-#        self.root.configure(bg='green')
         
         #set window size
         (w, h) = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
@@ -74,11 +73,16 @@ class GUI:
                                                   justify='center', padx=5, \
                                                   highlightthickness=10, \
                                                   highlightcolor='red')
-        self.percent_change_label = tk.Label(self.mid_row, font='Times 20', \
-                                             text='% Change to Notify: ', \
-                                             justify='left')
-        self.percent_change_entry = tk.Entry(self.mid_row, justify='left', \
-                                             font='Times 20', takefocus=1)
+        self.percent_inc_label = tk.Label(self.mid_row, font='Times 20', \
+                                          text='% Increase to Notify: ', \
+                                          justify='left')
+        self.percent_inc_entry = tk.Entry(self.mid_row, justify='left', \
+                                          font='Times 20', takefocus=1)
+        self.percent_dec_label = tk.Label(self.mid_row, font='Times 20', \
+                                          text='% Decrease to Notify: ', \
+                                          justify='left')
+        self.percent_dec_entry = tk.Entry(self.mid_row, justify='left', \
+                                          font='Times 20', takefocus=1)
         
         #allow execution of get_current_price_button on 'Enter'
         self.get_current_price_button.bind('<Return>', self.lookup_current_price)
@@ -89,8 +93,10 @@ class GUI:
         self.add_price_label.grid(row=1, column=0, sticky='we')
         self.add_price_entry.grid(row=1, column=1, sticky='we')
         self.get_current_price_button.grid(row=1, column=2, sticky='we')
-        self.percent_change_label.grid(row=2, column=0, sticky='we')
-        self.percent_change_entry.grid(row=2, column=1, sticky='we')
+        self.percent_inc_label.grid(row=2, column=0, sticky='we')
+        self.percent_inc_entry.grid(row=2, column=1, sticky='we')
+        self.percent_dec_label.grid(row=3, column=0, sticky='we')
+        self.percent_dec_entry.grid(row=3, column=1, sticky='we')
         
         #create the widgets for the bottom row
         self.add_ticker_button = tk.Button(self.bot_row, \
@@ -122,9 +128,11 @@ class GUI:
         self.add_ticker_entry.bind('<Tab>', focus_next_widget)
         self.add_price_entry.bind('<Tab>', focus_next_widget)
         self.get_current_price_button.bind('<Tab>', focus_next_widget)
-        self.percent_change_entry.bind('<Tab>', focus_next_widget)
+        self.percent_inc_entry.bind('<Tab>', focus_next_widget)
+        self.percent_dec_entry.bind('<Tab>', focus_next_widget)
         self.add_ticker_button.bind('<Tab>', focus_next_widget)
         self.remove_ticker_button.bind('<Tab>', focus_next_widget)
+        
         
         #set initial focus to add_ticker_entry
         self.add_ticker_entry.focus()  
@@ -142,25 +150,41 @@ class GUI:
                                     'User must enter a valid ticker symbol.')
     def ticker2list(self):
         """Add ticker to stock watchlist"""
-        symbol = self.add_ticker_entry.get()
-        price = self.add_price_entry.get()
-        percent = self.percent_change_entry.get()
-        if len(symbol) == 0 or len(price) == 0 or len(percent) == 0:
+        try:
+            symbol = self.add_ticker_entry.get().upper()
+        except ValueError:
+            pass            
+        try:
+            pct_inc = float(self.percent_inc_entry.get())
+        except ValueError:
+            pass
+        try:
+            pct_dec = float(self.percent_dec_entry.get())
+        except ValueError:
+            pass
+        try:
+            price = float(self.add_price_entry.get())
+            price_low = price * (1 - pct_dec/100)
+            price_high = price * (1 + pct_inc/100)
+        except (ValueError, UnboundLocalError):
+            pass
+        if len(symbol) == 0 or not price or not pct_dec or not pct_inc:
             tk.messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
                                    "'Ticker Symbol', 'Price', and '% Change to"
                                    " notify are required fields.")
         else: #add ticker to tickers.db
             connection = sql.connect('tickers.db')  #create connection to tickers.db
             cursor = connection.cursor()    #create cursor to traverse tickers.db
-            cursor.execute("INSERT INTO symbols (ticker_number, "
-            "ticker, price) VALUES (?, ?, ?);", (None, symbol, price)) #add changes for commital
+            cursor.execute("""INSERT INTO symbols (ticker, price, pct_dec, pct_inc,
+            price_low, price_high) VALUES (?, ?, ?, ?, ?, ?);""", \
+            (symbol, price, pct_dec, pct_inc, price_low, price_high)) #add changes for commital
             connection.commit() #commit changes to connection
             connection.close()  #close connection
             
     
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
-        symbol = self.add_ticker_entry.get()
+        symbol = self.add_ticker_entry.get().upper()
         connection = sql.connect('tickers.db')
         cursor = connection.cursor()
         cursor.execute("SELECT count(*) FROM symbols WHERE ticker=?", (symbol,))
@@ -176,7 +200,35 @@ class GUI:
     
     def see_list(self):
         """See stock watchlist"""
-        pass       
+        top = tk.Toplevel()
+        top.title('Your watchlist')        
+        (w, h) = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
+        top.geometry('{}x{}'.format(round(w/2), round(h/2)))
+        
+        #create containers for widgets
+        top_row = tk.Frame(top, width=w, height=round(h*.9))
+        bot_row = tk.Frame(top, width=w, height=round(h*.1))
+        
+        #layout containers
+        top.grid_rowconfigure(0, weight=1)
+        top.grid_rowconfigure(1, weight=1)
+        top.grid_columnconfigure(0, weight=1)
+        top.grid_columnconfigure(1, weight=0)
+        top_row.grid(row=0, columnspan=1)
+        bot_row.grid(row=0, columnspan=1)
+        
+        #create widget for displaying ticker watchlist
+        
+        
+        #layout widget for displaying ticker watchlist
+        
+        
+        #create 'dismiss' button
+        dismiss_button = tk.Button(bot_row, text='Dismiss', command=top.destroy, \
+                                   takefocus=1, anchor='s')
+        #layout 'dismiss' button
+        dismiss_button.grid(row=1)
+        
     
     def check_percent(self):
         """Checks current ticker symbol price to see if price is outside 
