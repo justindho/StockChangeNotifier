@@ -44,7 +44,8 @@ class GUI:
         
         #create the widgets for the top row
         self.see_stock_list_button = tk.Button(self.top_row, \
-                                               text='See Stock List', \
+                                               command=self.see_list, \
+                                               text='See Stock Watchlist', \
                                                font='Times 20', \
                                                activebackground='blue', bd=2, \
                                                bg='grey', fg='black', \
@@ -92,15 +93,17 @@ class GUI:
         
         #create the widgets for the bottom row
         self.add_ticker_button = tk.Button(self.bot_row, \
-                                              text='Add Ticker to List',  \
-                                              font='Times 20', \
-                                              activebackground='blue', bd=2, \
-                                              bg='grey', fg='black', \
-                                              justify='center', padx=1000, \
-                                              pady=25, highlightthickness=10, \
-                                              highlightcolor='red')
+                                           command=self.ticker2list, \
+                                           text='Add Ticker to List',  \
+                                           font='Times 20', \
+                                           activebackground='blue', bd=2, \
+                                           bg='grey', fg='black', \
+                                           justify='center', padx=1000, \
+                                           pady=25, highlightthickness=10, \
+                                           highlightcolor='red')
                                            
         self.remove_ticker_button = tk.Button(self.bot_row, \
+                                              command=self.remove_ticker, \
                                               text='Remove Ticker from List',  \
                                               font='Times 20', \
                                               activebackground='blue', bd=2, \
@@ -135,13 +138,26 @@ class GUI:
         except TypeError:
             tk.messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
                                     'User must enter a valid ticker symbol.')
+    def ticker2list(self):
+        """Add ticker to stock watchlist"""
+        symbol = self.add_ticker_entry.get()
+        price = self.add_price_entry.get()
+        percent = self.percent_change_entry.get()
+        if len(symbol) == 0 or len(price) == 0 or len(percent) == 0:
+            tk.messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
+                                   "'TICKER SYMBOL' AND 'PRICE' ARE REQUIRED "
+                                   "FIELDS")
+#        elif symbol == None or price == None or percent == None:
+#            tk.messagebox.showinfo("ERROR: 'TICKER SYMBOL' AND 'PRICE' ARE \
+#                                   REQUIRED FIELDS")
     
-        
-    #add validation to Entry widgets
-#    def isOkay(self, )
-#        if len(self.add_ticker_entry.get()) == 0:
-#            tk.messagebox.showerror('USER ERROR', 'Enter a symbol!')
-        
+    def remove_ticker(self):
+        """Remove ticker from stock watchlist"""
+        pass
+    
+    def see_list(self):
+        """See stock watchlist"""
+        pass       
         
         
 def focus_next_widget(event):
@@ -153,5 +169,8 @@ def focus_next_widget(event):
 def highlight_all(event):
     """highlight all text in when tabbing into an Entry widget"""
     event.selection_range(0, 'end')
+    
+
+    
     
     
