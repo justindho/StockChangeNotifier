@@ -7,6 +7,7 @@ Created on Wed Jan 16 19:13:25 2019
 
 import requests
 import urllib.parse
+import sqlite3 as sql
 
 def lookup(symbol):
     """Look up quote for symbol.
@@ -36,4 +37,30 @@ def usd(value):
     """Format value as USD"""
     return f"${value:,.2f}"  
 
-  
+def create_connection(db_file):
+    """ create a connection to the chosen SQLite database specified by the
+        db_file
+        :param db_file: database file
+        :return: Connection object or None
+    """
+    try:
+        conn = sql.connect(db_file)
+        return conn
+    except Error as e:
+        print(e)
+    
+    return None
+
+def close_connection(connection):
+    """ commit changes and close a connection to a SQLite database specified by
+        the connection object to that database
+        :param connection: connection object to a SQLite database
+        :return: None
+    """
+    try:
+        connection.commit()
+        connection.close()
+    except Error as e:
+        print(e)
+        
+    return None  
