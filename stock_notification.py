@@ -9,8 +9,7 @@ by more than a user-specified percentage.
 """
                                                                                                                 
 import GUI
-import helpers
-import sqlite3 as sql
+from helpers import create_connection, close_connection
 import os
 
 #import library for sending push notifications to browser, Android, or iOS 
@@ -21,7 +20,7 @@ if __name__ == '__main__':
     #create SQL database to store user's stock market information if not 
     #   created already
     if not os.path.exists('tickers.db'):
-        connection = sql.connect('tickers.db')
+        connection = create_connection('tickers.db')
         cursor= connection.cursor()
         create_sql_db = """
         CREATE TABLE symbols (
@@ -32,8 +31,7 @@ if __name__ == '__main__':
         price_low REAL,
         price_high REAL);"""           
         cursor.execute(create_sql_db)   #create table 'symbols'
-        connection.commit()
-        connection.close() 
+        close_connection(connection)
         
 
     #run GUI application                                                                                     
