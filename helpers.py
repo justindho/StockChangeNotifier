@@ -9,7 +9,10 @@ import requests
 import urllib.parse
 
 def lookup(symbol):
-    """Look up quote for symbol."""
+    """Look up quote for symbol.
+    :param symbol: ticker symbol to lookup
+    :return: dictionary of ticker symbol's name, price, and symbol
+    """
     
     #Contact API
     try:
@@ -31,4 +34,6 @@ def lookup(symbol):
           
 def usd(value):
     """Format value as USD"""
-    return f"${value:,.2f}"    
+    return f"${value:,.2f}"  
+
+  
