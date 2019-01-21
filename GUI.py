@@ -11,26 +11,26 @@ try:
 except ImportError:
     #for Python3
     import tkinter as tk
-    from tkinter import messagebox
     
-from helpers import lookup, usd, create_connection, close_connection
+from helpers import lookup, usd, create_connection, close_connection, send_sms
 
 class GUI:
+    """Creates a class to build the ticker symbol Graphical User Interface (GUI)."""
     def __init__(self):
-        #configure the root window
+        # configure the root window
         self.root = tk.Tk()
         self.root.title('Stock Change Notifier')
         
-        #set window size
+        # set window size
         (w, h) = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
         self.root.geometry("%dx%d+0+0" % (w, h))
         
-        #create all of the main containers
+        # create all of the main containers
         self.top_row = tk.Frame(self.root, width=w, height=100, bd=10, bg='red')
         self.mid_row = tk.Frame(self.root, width=w, height=100, bd=10, bg='blue')
         self.bot_row = tk.Frame(self.root, width=w, height=100, bd=10, bg='green')
         
-        #layout all of the main containers
+        # layout all of the main containers
         self.root.grid_rowconfigure(0, weight=1)
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_rowconfigure(2, weight=1)
@@ -41,7 +41,7 @@ class GUI:
         self.mid_row.grid(row=1, columnspan=3)
         self.bot_row.grid(row=2, columnspan=3)
         
-        #create the widgets for the top row
+        # create the widgets for the top row
         self.see_stock_list_button = tk.Button(self.top_row, \
                                                command=self.see_list, \
                                                text='See Stock Watchlist', \
@@ -51,10 +51,10 @@ class GUI:
                                                highlightthickness=10, \
                                                highlightcolor='red')
         
-        #layout the widgets in the top row
+        # layout the widgets in the top row
         self.see_stock_list_button.grid(row=0, sticky='we')
         
-        #create the widgets for the middle row
+        # create the widgets for the middle row
         self.add_ticker_label = tk.Label(self.mid_row, text='Ticker Symbol: ', \
                                          font='Times 20')
         self.add_ticker_entry = tk.Entry(self.mid_row, justify='left', \
@@ -83,10 +83,10 @@ class GUI:
         self.percent_dec_entry = tk.Entry(self.mid_row, justify='left', \
                                           font='Times 20', takefocus=1)
         
-        #allow execution of get_current_price_button on 'Enter'
+        # allow execution of get_current_price_button on 'Enter'
         self.get_current_price_button.bind('<Return>', self.lookup_current_price)
         
-        #layout the widgets for the middle row
+        # layout the widgets for the middle row
         self.add_ticker_label.grid(row=0, column=0, sticky='we')
         self.add_ticker_entry.grid(row=0, column=1, sticky='we')
         self.add_price_label.grid(row=1, column=0, sticky='we')
@@ -97,7 +97,7 @@ class GUI:
         self.percent_dec_label.grid(row=3, column=0, sticky='we')
         self.percent_dec_entry.grid(row=3, column=1, sticky='we')
         
-        #create the widgets for the bottom row
+        # create the widgets for the bottom row
         self.add_ticker_button = tk.Button(self.bot_row, \
                                            command=self.ticker2list, \
                                            text='Add Ticker to List',  \
@@ -118,11 +118,11 @@ class GUI:
                                               pady=25, highlightthickness=10, \
                                               highlightcolor='red')
         
-        #layout the widgets for the bottom row
+        # layout the widgets for the bottom row
         self.add_ticker_button.grid(row=0, sticky='we')
         self.remove_ticker_button.grid(row=1, sticky='we')
         
-        #allow user to tab to next widget
+        # allow user to tab to next widget
         self.see_stock_list_button.bind('<Tab>', focus_next_widget)
         self.add_ticker_entry.bind('<Tab>', focus_next_widget)
         self.add_price_entry.bind('<Tab>', focus_next_widget)
@@ -131,14 +131,26 @@ class GUI:
         self.percent_dec_entry.bind('<Tab>', focus_next_widget)
         self.add_ticker_button.bind('<Tab>', focus_next_widget)
         self.remove_ticker_button.bind('<Tab>', focus_next_widget)
-        
-        
-        #set initial focus to add_ticker_entry
+                
+        # set initial focus to add_ticker_entry
         self.add_ticker_entry.focus()  
         
+        # get list of ticker symbols in user's watchlist
+        db = create_connection('tickers.db')
+        cursor = db.cursor()
+        cursor.execute("""SELECT ticker FROM symbols""")
+        tickers = cursor.fetchall()
+        tickers = [ticker[0] for ticker in tickers]
+        print(tickers)
+        # check prices of all tickers on user's watchlist against bounds
+        for ticker in tickers:
+            self.check_price(ticker)
+            
+        close_connection(db)
+        
     def lookup_current_price(self):
-        """Handle get_current_price_button button click to get stock price. 
-        Will return error message upon invalid ticker symbol or empty string
+        """ Handle get_current_price_button button click to get stock price. 
+            Returns error message upon invalid ticker symbol or empty string.
         """
         try:
             symbol = self.add_ticker_entry.get()
@@ -147,6 +159,7 @@ class GUI:
         except TypeError:
             tk.messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
                                     'User must enter a valid ticker symbol.')
+    
     def ticker2list(self):
         """Add ticker to stock watchlist"""
         try:
@@ -180,7 +193,6 @@ class GUI:
             
             close_connection(db)
             
-    
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
         symbol = self.add_ticker_entry.get().upper()
@@ -196,8 +208,7 @@ class GUI:
             cursor.execute("DELETE FROM symbols WHERE ticker=?;", (symbol,))
         
         close_connection(db)          
-        
-    
+            
     def see_list(self):
         """Creates table of watchlist to present to the user"""
         top = tk.Toplevel()
@@ -260,39 +271,40 @@ class GUI:
         
         #save changes to tickers.db and close connection
         close_connection(db)
-        
-    
+            
     def check_price(self, symbol):
-        """Checks current ticker symbol price to see if price is outside 
-        user-defined range
+        """ Checks current ticker symbol price to see if price is outside 
+            user-defined range
         """
         current_price = lookup(symbol)['price']
         db = create_connection('tickers.db')
-        cursor = dbcursor()
-        cursor.execute("""SELECT (price_low, price_high) FROM symbols 
-                       WHERE symbol=?""", (symbol,))
-        price_low, price_high = cursor.fetchone()[0], cursor.fetchone[1]
+        cursor = db.cursor()
+        cursor.execute("""SELECT price_low, price_high FROM symbols 
+                       WHERE ticker=?""", (symbol,))
+        price_low, price_high = cursor.fetchone()
+        print('symbol: ', symbol)
+        print('price_low: ', price_low)
+        print('price_high: ', price_high)
         if current_price < price_low:
-            #TODO (twilio)
-            #send user a notification that lower bound has been exceeded
-            pass
+            # send user a notification that lower bound has been exceeded
+            message = symbol + ' has fallen below your lower bound price of '\
+                + usd(price_low) + '.'            
+            send_sms(message)
         elif current_price > price_high:
-            pass
-            #TODO (twilio)
-            #send user a notification that upper bound has been exceeded
-            #does check_price need to run every second???? how to do this???
+            # send user a notification that upper bound has been exceeded
+            message = symbol + ' has surpassed your upper bound price of '\
+                + usd(price_high) + '.'            
+            send_sms(message)
         
         close_connection(db)
-        pass
-        
         
 def focus_next_widget(event):
-    """allow user to tab to next widget"""
+    """Allow user to tab to next widget"""
     event.widget.tk_focusNext().focus()
     event.bind('<FocusIn>', highlight_all)
     return('break')        
     
 def highlight_all(event):
-    """highlight all text in when tabbing into an Entry widget"""
+    """Highlight all text in when tabbing into an Entry widget"""
     event.selection_range(0, 'end')
 
