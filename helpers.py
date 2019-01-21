@@ -8,6 +8,7 @@ Created on Wed Jan 16 19:13:25 2019
 import requests
 import urllib.parse
 import sqlite3 as sql
+import os
 from twilio.rest import Client
 
 # Your Account SID from twilio.com/console
@@ -17,20 +18,25 @@ auth_token  = os.environ['auth_token']
 
 client = Client(account_sid, auth_token)
 
+# to add authenticated phone numbers to send to, add phone no. at url below
+# https://www.twilio.com/console/phone-numbers/verified
+phone_no_to = '+19252090927'
+phone_no_from = '+14086755247'
+
 def lookup(symbol):
     """ Look up quote for symbol.
         :param symbol: ticker symbol to lookup
         :return: dictionary of ticker symbol's name, price, and symbol
     """
     
-    #Contact API
+    # Contact API
     try:
         response = requests.get(f"https://api.iextrading.com/1.0/stock/{urllib.parse.quote_plus(symbol)}/quote")
         response.raise_for_status()
     except requests.RequestException:
         return None
     
-    #Parse response
+    # Parse response
     try:
         quote = response.json()
         return {
@@ -46,7 +52,7 @@ def usd(value):
     return f"${value:,.2f}"  
 
 def create_connection(db_file):
-    """ create a connection to the chosen SQLite database specified by the
+    """ Create a connection to the chosen SQLite database specified by the
         db_file
         :param db_file: database file
         :return: Connection object or None
@@ -60,7 +66,7 @@ def create_connection(db_file):
     return None
 
 def close_connection(connection):
-    """ commit changes and close a connection to a SQLite database specified by
+    """ Commit changes and close a connection to a SQLite database specified by
         the connection object to that database
         :param connection: connection object to a SQLite database
         :return: None
@@ -73,5 +79,14 @@ def close_connection(connection):
         
     return None  
 
-def send_sms():
-    """ 
+def send_sms(body):
+    """ Send a SMS to the listed phone number to notify them of a ticker(s) 
+        price change that exceeds the user's defined limits
+        :param body: string object that contains the message to be sent
+    """
+    client.messages.create(
+            to=phone_no_to, 
+            from_=phone_no_from,
+            body=body)
+    
+    
