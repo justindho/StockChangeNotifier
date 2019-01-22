@@ -1,4 +1,4 @@
-            # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 Created on Mon Jan 14 19:14:49 2019
 
@@ -11,17 +11,14 @@ by more than a user-specified percentage.
 import GUI
 from helpers import create_connection, close_connection
 import os
-
-#import library for sending push notifications to browser, Android, or iOS 
-    #and/or Windows 10 device
-#from pushsafer import init, Client    
   
 if __name__ == '__main__':  
-    #create SQL database to store user's stock market information if not 
-    #   created already
+    # create SQLite3 database to store user's stock market information if not 
+    # created already
     if not os.path.exists('tickers.db'):
-        connection = create_connection('tickers.db')
-        cursor= connection.cursor()
+        # create connection to database and create a table to store data
+        db = create_connection('tickers.db')
+        cursor= db.cursor()      
         create_sql_db = """
         CREATE TABLE symbols (
         ticker TEXT PRIMARY KEY, 
@@ -30,9 +27,8 @@ if __name__ == '__main__':
         pct_inc REAL,
         price_low REAL,
         price_high REAL);"""           
-        cursor.execute(create_sql_db)   #create table 'symbols'
-        close_connection(connection)
-        
+        cursor.execute(create_sql_db)
+        close_connection(db)        
 
     #run GUI application                                                                                     
     app = GUI.GUI()
