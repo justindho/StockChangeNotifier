@@ -121,6 +121,9 @@ class GUI:
         # layout the widgets for the bottom row
         self.add_ticker_button.grid(row=0, sticky='we')
         self.remove_ticker_button.grid(row=1, sticky='we')
+
+        # set initial focus to add_ticker_entry
+        self.add_ticker_entry.focus()  
         
         # allow user to tab to next widget
         self.see_stock_list_button.bind('<Tab>', focus_next_widget)
@@ -131,9 +134,6 @@ class GUI:
         self.percent_dec_entry.bind('<Tab>', focus_next_widget)
         self.add_ticker_button.bind('<Tab>', focus_next_widget)
         self.remove_ticker_button.bind('<Tab>', focus_next_widget)
-                
-        # set initial focus to add_ticker_entry
-        self.add_ticker_entry.focus()  
         
         # get list of ticker symbols in user's watchlist
         db = create_connection('tickers.db')
@@ -141,12 +141,20 @@ class GUI:
         cursor.execute("""SELECT ticker FROM symbols""")
         tickers = cursor.fetchall()
         tickers = [ticker[0] for ticker in tickers]
-        print(tickers)
+        
         # check prices of all tickers on user's watchlist against bounds
         for ticker in tickers:
             self.check_price(ticker)
             
         close_connection(db)
+        
+        # bring root window into immediate view
+        self.root.lift()
+        self.root.attributes('-topmost',True)
+        self.root.after_idle(self.root.attributes,'-topmost',False)
+        
+        # set focus onto root window
+        self.root.focus_force()
         
     def lookup_current_price(self):
         """ Handle get_current_price_button button click to get stock price. 
@@ -297,14 +305,21 @@ class GUI:
             send_sms(message)
         
         close_connection(db)
+
+#    def keep_checking_price(self, tickers):
+#        """ Continually checks prices of all tickers on user's watchlist
+#            against bounds
+#        """
+#        for ticker in tickers:
+#            self.check_price(ticker)
         
 def focus_next_widget(event):
     """Allow user to tab to next widget"""
     event.widget.tk_focusNext().focus()
-    event.bind('<FocusIn>', highlight_all)
+#    event.bind('<FocusIn>', highlight_all)
+    event.bind('<Tab>', highlight_all)
     return('break')        
     
 def highlight_all(event):
     """Highlight all text in when tabbing into an Entry widget"""
     event.selection_range(0, 'end')
-
