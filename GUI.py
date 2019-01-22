@@ -8,11 +8,13 @@ Created on Wed Jan 16 19:13:35 2019
 try:
     #for Python2
     import Tkinter as tk
+    from Tkinter import messagebox
 except ImportError:
     #for Python3
     import tkinter as tk
+    from tkinter import messagebox
     
-from helpers import lookup, usd, create_connection, close_connection, send_sms
+from helpers import lookup, usd, create_connection, close_connection, send_sms, get_symbols
 
 class GUI:
     """Creates a class to build the ticker symbol Graphical User Interface (GUI)."""
@@ -99,7 +101,7 @@ class GUI:
         
         # create the widgets for the bottom row
         self.add_ticker_button = tk.Button(self.bot_row, \
-                                           command=self.ticker2list, \
+                                           command=self.add_ticker, \
                                            text='Add Ticker to List',  \
                                            font='Times 20', \
                                            activebackground='blue', bd=2, \
@@ -168,31 +170,29 @@ class GUI:
             tk.messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
                                     'User must enter a valid ticker symbol.')
     
-    def ticker2list(self):
+    def add_ticker(self):
         """Add ticker to stock watchlist"""
         try:
             symbol = self.add_ticker_entry.get().upper()
-        except ValueError:
-            pass            
-        try:
-            pct_inc = float(self.percent_inc_entry.get())
-        except ValueError:
-            pass
-        try:
-            pct_dec = float(self.percent_dec_entry.get())
-        except ValueError:
-            pass
-        try:
             price = float(self.add_price_entry.get())
+            pct_inc = float(self.percent_inc_entry.get())
+            pct_dec = float(self.percent_dec_entry.get())
             price_low = price * (1 - pct_dec/100)
             price_high = price * (1 + pct_inc/100)
+            print('Inside TRY.')
         except (ValueError, UnboundLocalError):
-            pass
+            messagebox.showinfo('ERROR: MISSING ENTRY FIELDS', \
+                                'Please make sure all fields have info.')
+            return
+
         # error message if not all entries filled else add ticker to db
         if len(symbol) == 0 or not price or not pct_dec or not pct_inc:
-            tk.messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
+            messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
                                    "'Ticker Symbol', 'Price', and '% Change to"
                                    " notify are required fields.")
+        elif symbol not in get_symbols()[0]:
+            messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
+                                'Invalid ticker symbol. Please re-enter info.')
         else: 
             db = create_connection('tickers.db')
             cursor = db.cursor()    
@@ -214,7 +214,7 @@ class GUI:
         data = cursor.fetchone()[0]
         
         if data == 0:
-            tk.messagebox.showinfo("REMOVAL ERROR", \
+            messagebox.showinfo("REMOVAL ERROR", \
                                    "Ticker doesn't exist in your watchlist.")
         else:
             cursor.execute("DELETE FROM symbols WHERE ticker=?;", (symbol,))
