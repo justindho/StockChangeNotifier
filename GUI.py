@@ -318,13 +318,14 @@ class GUI:
         self.percent_inc_entry.delete(0, 'end')
         self.percent_dec_entry.delete(0, 'end')
         
-def focus_next_widget(event):
+def focus_next_widget(event):        
     """Allow user to tab to next widget"""
     event.widget.tk_focusNext().focus()
-#    event.bind('<FocusIn>', highlight_all)
-    event.bind('<Tab>', highlight_all)
+    
+    # highlight contents of next widget
+    try:
+        event.widget.selection_range(0, 'end')
+    except AttributeError:
+        pass
     return('break')        
     
-def highlight_all(event):
-    """Highlight all text in when tabbing into an Entry widget"""
-    event.selection_range(0, 'end')
