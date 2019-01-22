@@ -179,7 +179,6 @@ class GUI:
             pct_dec = float(self.percent_dec_entry.get())
             price_low = price * (1 - pct_dec/100)
             price_high = price * (1 + pct_inc/100)
-            print('Inside TRY.')
         except (ValueError, UnboundLocalError):
             messagebox.showinfo('ERROR: MISSING ENTRY FIELDS', \
                                 'Please make sure all fields have info.')
