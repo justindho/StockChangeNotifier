@@ -188,18 +188,22 @@ class GUI:
             price_high = price * (1 + pct_inc/100)
         except (ValueError, UnboundLocalError):
             pass
+        # error message if not all entries filled else add ticker to db
         if len(symbol) == 0 or not price or not pct_dec or not pct_inc:
             tk.messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
                                    "'Ticker Symbol', 'Price', and '% Change to"
                                    " notify are required fields.")
-        else: #add ticker to tickers.db
+        else: 
             db = create_connection('tickers.db')
-            cursor = db.cursor()    #create cursor to traverse tickers.db
+            cursor = db.cursor()    
             cursor.execute("""INSERT INTO symbols (ticker, price, pct_dec, pct_inc,
             price_low, price_high) VALUES (?, ?, ?, ?, ?, ?);""", \
-            (symbol, price, pct_dec, pct_inc, price_low, price_high)) #add changes for commital
+            (symbol, price, pct_dec, pct_inc, price_low, price_high)) 
             
             close_connection(db)
+            
+            # clear out entry fields
+            self.clear_entries()
             
     def remove_ticker(self):
         """Remove ticker from stock watchlist"""
@@ -214,6 +218,9 @@ class GUI:
                                    "Ticker doesn't exist in your watchlist.")
         else:
             cursor.execute("DELETE FROM symbols WHERE ticker=?;", (symbol,))
+            
+            # clear out entry fields
+            self.clear_entries()
         
         close_connection(db)          
             
@@ -306,12 +313,11 @@ class GUI:
         
         close_connection(db)
 
-#    def keep_checking_price(self, tickers):
-#        """ Continually checks prices of all tickers on user's watchlist
-#            against bounds
-#        """
-#        for ticker in tickers:
-#            self.check_price(ticker)
+    def clear_entries(self):
+        self.add_price_entry.delete(0, 'end')
+        self.add_ticker_entry.delete(0, 'end')
+        self.percent_inc_entry.delete(0, 'end')
+        self.percent_dec_entry.delete(0, 'end')
         
 def focus_next_widget(event):
     """Allow user to tab to next widget"""
