@@ -3,6 +3,8 @@
 Created on Wed Jan 16 19:13:25 2019
 
 @author: Justin Ho
+
+Environmental variables: TWILIO_ACCOUNT_SID, auth_token
 """
 
 import requests
@@ -10,6 +12,8 @@ import urllib.parse
 import sqlite3 as sql
 import os
 from twilio.rest import Client
+import json
+from bs4 import BeautifulSoup as soup
 
 # Your Account SID from twilio.com/console
 account_sid = os.environ['TWILIO_ACCOUNT_SID']
@@ -22,6 +26,22 @@ client = Client(account_sid, auth_token)
 # https://www.twilio.com/console/phone-numbers/verified
 phone_no_to = '+19252090927'
 phone_no_from = '+14086755247'
+
+def get_symbols():
+    """Return a tuple of all valid stock market tickers and how many there are"""
+    try:
+        response = requests.get(f"https://api.iextrading.com/1.0/ref-data/symbols")
+        response.raise_for_status()
+        ticker_list = json.loads(response.text) # convert string into list of dicts
+        symbol_list = []
+        for ticker in ticker_list:
+            symbol_list.append(ticker['symbol'])
+        num_tickers = len(symbol_list)
+        return (symbol_list, num_tickers)
+        
+    except requests.RequestException:
+        print('Unable to retrieve ticker symbols.')
+        return None
 
 def lookup(symbol):
     """ Look up quote for symbol.
@@ -88,5 +108,4 @@ def send_sms(body):
             to=phone_no_to, 
             from_=phone_no_from,
             body=body)
-    
     
