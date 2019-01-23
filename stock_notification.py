@@ -6,10 +6,12 @@ Created on Mon Jan 14 19:14:49 2019
 
 This script notifies the user when their chosen stock tickers change in price 
 by more than a user-specified percentage.
-"""
-                                                                                                                
-import GUI
-from helpers import create_connection, close_connection
+"""                                                                                                              
+
+from helpers import (create_connection, close_connection)
+
+from GUI import thread_run_GUI, thread_check_price
+
 import os
   
 if __name__ == '__main__':  
@@ -28,8 +30,18 @@ if __name__ == '__main__':
         price_low REAL,
         price_high REAL);"""           
         cursor.execute(create_sql_db)
-        close_connection(db)        
-
-    #run GUI application                                                                                     
-    app = GUI.GUI()
-    app.root.mainloop()
+        close_connection(db)                
+        
+    # create new threads
+    thread1 = thread_run_GUI(1, 'GUI Thread', 1)
+    thread2 = thread_check_price(2, 'Check Ticker Prices', 2)
+    
+    # start new threads
+    thread1.start()
+    thread2.start()
+    
+    print('Exiting main thread.\n')
+    
+    # run GUI application                                                                                     
+#    app = GUI.GUI()
+#    app.root.mainloop()
