@@ -14,7 +14,10 @@ except ImportError:
     import tkinter as tk
     from tkinter import messagebox
     
-from helpers import lookup, usd, create_connection, close_connection, send_sms, get_symbols
+from helpers import (lookup, usd, create_connection, close_connection, 
+                     send_sms, get_symbols)
+
+import threading
 
 class GUI:
     """Creates a class to build the ticker symbol Graphical User Interface (GUI)."""
@@ -329,3 +332,29 @@ def focus_next_widget(event):
         pass
     return('break')        
     
+class thread_run_GUI(threading.Thread):
+    """Implement a thread to run the GUI."""
+    def __init__(self, thread_ID, name, counter):
+        threading.Thread.__init__(self)
+        self.thread_ID = thread_ID
+        self.name = name
+        self.counter = counter
+        
+    def run(self):
+        print('Starting ' + self.name + '...\n')
+        app = GUI()
+        app.root.mainloop()
+        print('Exiting ' + self.name + '...\n')
+
+class thread_check_price(threading.Thread):
+    """Implement a thread to continually check ticker prices on watchlist."""
+    def __init__(self, thread_ID, name, counter):
+        threading.Thread.__init__(self)
+        self.thread_ID = thread_ID
+        self.name = name
+        self.counter = counter
+        
+    def run(self):
+        print('Starting ' + self.name + '...\n')
+        GUI.check_price()
+        print('Exiting ' + self.name + '...\n')    
