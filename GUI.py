@@ -334,20 +334,16 @@ class GUI:
         if current_price < price_low:
             # send user a notification that lower bound has been exceeded
             pct = abs(current_price - price) / price * 100
-#            message = symbol + ' has fallen below your lower bound price of '\
-#                + usd(price_low) + '.'   
             message = symbol + ' is down ' + str(pct) + '% to $' + \
-                        str(round(current_price, 2)) + ' from your watch ' + 
-                        'price of $' + str(round(price, 2))
+                        str(round(current_price, 2)) + ' from your watch ' + \
+                        'price of $' + str(round(price, 2)) + '.'
             send_sms(message)
         elif current_price > price_high:
             # send user a notification that upper bound has been exceeded
-            pct = abs(current_price - price) / price * 100
-#            message = symbol + ' has surpassed your upper bound price of '\
-#                + usd(price_high) + '.'    
+            pct = abs(current_price - price) / price * 100   
             message = symbol + ' is up ' + str(pct) + '% to $' + \
-                        str(round(current_price, 2)) + ' from your watch ' + 
-                        'price of $' + str(round(price, 2))
+                        str(round(current_price, 2)) + ' from your watch ' + \
+                        'price of $' + str(round(price, 2)) + '.'
             send_sms(message)
 
     def clear_entries(self):
