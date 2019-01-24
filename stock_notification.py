@@ -10,7 +10,7 @@ by more than a user-specified percentage.
 
 from helpers import (create_connection, close_connection)
 
-from GUI import thread_run_GUI, thread_check_price
+from GUI import thread_run_GUI, thread_check_price, GUI
 
 import os
   
@@ -33,15 +33,18 @@ if __name__ == '__main__':
         close_connection(db)                
         
     # create new threads
-    thread1 = thread_run_GUI(1, 'GUI Thread', 1)
-    thread2 = thread_check_price(2, 'Check Ticker Prices', 2)
+#    thread1 = thread_run_GUI(1, 'GUI Thread', 1)
+#    thread2 = thread_check_price(2, 'Check Ticker Prices', 2)
     
     # start new threads
-    thread1.start()
-    thread2.start()
+#    thread1.start()
+#    thread2.start()
     
-    print('Exiting main thread.\n')
+#    print('Exiting main thread.\n')
     
     # run GUI application                                                                                     
-#    app = GUI.GUI()
+#    app = GUI()
 #    app.root.mainloop()
+    
+    app = GUI()
+    app.run()

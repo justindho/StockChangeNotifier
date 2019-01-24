@@ -289,6 +289,38 @@ class GUI:
         #save changes to tickers.db and close connection
         close_connection(db)
             
+#    def check_price(self, symbol):
+#        """ Checks current ticker symbol price to see if price is outside 
+#            user-defined range
+#        """
+#        current_price = lookup(symbol)['price']
+#        db = create_connection('tickers.db')
+#        cursor = db.cursor()
+#        cursor.execute("""SELECT price_low, price_high FROM symbols 
+#                       WHERE ticker=?""", (symbol,))
+#        price_low, price_high = cursor.fetchone()
+#        if current_price < price_low:
+#            # send user a notification that lower bound has been exceeded
+#            message = symbol + ' has fallen below your lower bound price of '\
+#                + usd(price_low) + '.'            
+#            send_sms(message)
+#        elif current_price > price_high:
+#            # send user a notification that upper bound has been exceeded
+#            message = symbol + ' has surpassed your upper bound price of '\
+#                + usd(price_high) + '.'            
+#            send_sms(message)
+#        
+#        close_connection(db)
+        
+    def check_tickers(self):
+        """Checks all tickers' prices using check_price"""
+        db = create_connection('tickers.db')
+        cursor = db.cursor()
+        cursor.execute("""SELECT ticker FROM symbols""") 
+        tickers = [ticker[0] for ticker in cursor.fetchall()]  # get list of user's tickers
+        for ticker in tickers:
+            self.check_price(ticker)
+        
     def check_price(self, symbol):
         """ Checks current ticker symbol price to see if price is outside 
             user-defined range
@@ -299,9 +331,6 @@ class GUI:
         cursor.execute("""SELECT price_low, price_high FROM symbols 
                        WHERE ticker=?""", (symbol,))
         price_low, price_high = cursor.fetchone()
-        print('symbol: ', symbol)
-        print('price_low: ', price_low)
-        print('price_high: ', price_high)
         if current_price < price_low:
             # send user a notification that lower bound has been exceeded
             message = symbol + ' has fallen below your lower bound price of '\
@@ -312,14 +341,25 @@ class GUI:
             message = symbol + ' has surpassed your upper bound price of '\
                 + usd(price_high) + '.'            
             send_sms(message)
-        
-        close_connection(db)
 
     def clear_entries(self):
+        """Clear all content in entries."""
         self.add_price_entry.delete(0, 'end')
         self.add_ticker_entry.delete(0, 'end')
         self.percent_inc_entry.delete(0, 'end')
         self.percent_dec_entry.delete(0, 'end')
+        
+    def run(self):
+        """Continually run GUI and check_prices."""
+#        t1 = threading.Thread(target=self.root.mainloop)
+        print('Starting GUI...\n')
+        self.root.mainloop()
+        t2 = threading.Thread(target=self.check_tickers)
+#        t1.start()
+        print('Checking prices for forever...\n')
+        t2.start()
+#        t1.join()
+#        t2.join()
         
 def focus_next_widget(event):        
     """Allow user to tab to next widget"""
@@ -342,8 +382,8 @@ class thread_run_GUI(threading.Thread):
         
     def run(self):
         print('Starting ' + self.name + '...\n')
-        app = GUI()
-        app.root.mainloop()
+        self.app = GUI()
+        self.app.root.mainloop()
         print('Exiting ' + self.name + '...\n')
 
 class thread_check_price(threading.Thread):
@@ -353,8 +393,17 @@ class thread_check_price(threading.Thread):
         self.thread_ID = thread_ID
         self.name = name
         self.counter = counter
+        GUI()
         
     def run(self):
         print('Starting ' + self.name + '...\n')
-        GUI.check_price()
+        # RETRIEVE LIST OF TICKER SYMBOLS VIA SQL
+        db = create_connection('tickers.db')
+        cursor = db.cursor()
+        cursor.execute("""SELECT ticker FROM symbols""")
+#        tickers = cursor.fetchall()
+        tickers = [ticker[0] for ticker in cursor.fetchall()]
+        print('tickers: ', tickers)
+        for symbol in tickers:
+            GUI.check_price(self, symbol)
         print('Exiting ' + self.name + '...\n')    
