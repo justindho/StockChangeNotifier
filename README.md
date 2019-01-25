@@ -29,3 +29,5 @@ python stock_notification.py
 [MIT](https://choosealicense.com/licenses/mit/)
 ## Project Status
 The project is still a work in progress. The foundation has been laid, but there is still functionality and user interface that I am tweaking in my spare time to make for a better user experience.
+## Contact Information
+If you have suggestions on how to improve this application, please email Justin Ho at <justinho515@gmail.com>.
