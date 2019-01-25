@@ -140,6 +140,16 @@ class GUI:
         self.add_ticker_button.bind('<Tab>', focus_next_widget)
         self.remove_ticker_button.bind('<Tab>', focus_next_widget)
         
+        # allow user to shift+tab to go to previous widget
+        self.see_stock_list_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.add_ticker_entry.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.add_price_entry.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.get_current_price_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.percent_inc_entry.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.percent_dec_entry.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.add_ticker_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        self.remove_ticker_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        
         # get list of ticker symbols in user's watchlist
         db = create_connection('tickers.db')
         cursor = db.cursor()
@@ -334,14 +344,14 @@ class GUI:
         if current_price < price_low:
             # send user a notification that lower bound has been exceeded
             pct = abs(current_price - price) / price * 100
-            message = symbol + ' is down ' + str(pct) + '% to $' + \
+            message = symbol + ' is down ' + str(round(pct, 2)) + '% to $' + \
                         str(round(current_price, 2)) + ' from your watch ' + \
                         'price of $' + str(round(price, 2)) + '.'
             send_sms(message)
         elif current_price > price_high:
             # send user a notification that upper bound has been exceeded
             pct = abs(current_price - price) / price * 100   
-            message = symbol + ' is up ' + str(pct) + '% to $' + \
+            message = symbol + ' is up ' + str(round(pct, 2)) + '% to $' + \
                         str(round(current_price, 2)) + ' from your watch ' + \
                         'price of $' + str(round(price, 2)) + '.'
             send_sms(message)
@@ -374,7 +384,18 @@ def focus_next_widget(event):
         event.widget.selection_range(0, 'end')
     except AttributeError:
         pass
-    return('break')        
+    return('break')  
+
+def focus_prev_widget(event):
+    """Allow user to shift+tab to former widget"""
+    event.widget.tk_focusPrev().focus()
+
+    # highlight contents of former widget
+    try:
+        event.widget.selection_range(0, 'end')
+    except AttributeError:
+        pass
+    return('break')
     
 class thread_run_GUI(threading.Thread):
     """Implement a thread to run the GUI."""
