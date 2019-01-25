@@ -12,6 +12,13 @@ pip install urllib
 pip install os
 pip install json
 ```
+To receive text messages, you will need to create a [Twilio](https://www.twilio.com/try-twilio) account. Once you get your Twilio phone number, you will need to make some modifications to ```helpers.py```. 
+In lines 28-29, update the following:
+```
+phone_no_to = '1234567890'  # the number you want to send notifications to
+phone_no_from = '1098765432'  # your Twilio phone number
+```
+Keep in mind that with the trial version of Twilio, you will only be able to sends text messages to [verified numbers](https://www.twilio.com/console/phone-numbers/verified).
 ## Usage
 In your command propmt (Windows key + 'r'), run stock_notification.py
 ```
