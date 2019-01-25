@@ -86,10 +86,7 @@ class GUI:
                                           text='% Decrease to Notify: ', \
                                           justify='left')
         self.percent_dec_entry = tk.Entry(self.mid_row, justify='left', \
-                                          font='Times 20', takefocus=1)
-        
-        # allow execution of get_current_price_button on 'Enter'
-        self.get_current_price_button.bind('<Return>', self.lookup_current_price)
+                                          font='Times 20', takefocus=1)        
         
         # layout the widgets for the middle row
         self.add_ticker_label.grid(row=0, column=0, sticky='we')
@@ -149,6 +146,12 @@ class GUI:
         self.percent_dec_entry.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
         self.add_ticker_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
         self.remove_ticker_button.bind('<Shift-KeyPress-Tab>', focus_prev_widget)
+        
+        # allow user to execute button on 'Enter'
+        self.see_stock_list_button.bind('<Return>', lambda event: self.see_list())
+        self.get_current_price_button.bind('<Return>', lambda event: self.lookup_current_price())
+        self.add_ticker_button.bind('<Return>', lambda event: self.add_ticker())
+        self.remove_ticker_button.bind('<Return>', lambda event: self.remove_ticker())
         
         # get list of ticker symbols in user's watchlist
         db = create_connection('tickers.db')
