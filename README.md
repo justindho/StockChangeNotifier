@@ -17,7 +17,15 @@ In your command propmt (Windows key + 'r'), run stock_notification.py
 ```
 python stock_notification.py
 ```
+## Home Screen
+![Home Screen](/Images/Home.png)
+## Adding a Ticker to Your Watchlist
+![Adding a Ticker to Your Watchlist](/Images/Stock_Info.png)
+## Watchlist
+![Watchlist](/Images/Watchlist.png)
+## SMS Notification
+![SMS Notification](/Images/sms.PNG)
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)
 ## Project Status
-The project is still a work in progress. The foundation has been laid, but there is still functionality that I am adding in in my spare time to make for a better user experience.
+The project is still a work in progress. The foundation has been laid, but there is still functionality and user interface that I am tweaking in my spare time to make for a better user experience.
