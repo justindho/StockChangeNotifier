@@ -1,7 +1,7 @@
 # StockChangeNotifier
 This program, at its completion, will notify the user via text message when a ticker symbol's price in the stock market changes by a user-defined percentage.
 ## Setup
-Use the [pip](https://pip.pypa.io/en/stable/) to install the following packages if not already installed on your computer.
+Use [pip](https://pip.pypa.io/en/stable/) to install the following packages if not already installed on your computer.
 ```
 pip install tkinter 
 pip install threading
