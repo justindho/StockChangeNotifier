@@ -197,23 +197,22 @@ class GUI:
             price_high = price * (1 + pct_inc/100)
         except (ValueError, UnboundLocalError):
             messagebox.showinfo('ERROR: MISSING ENTRY FIELDS', \
-                                'Please make sure all fields have info.')
+                                'Please make sure all fields have valid info.')
             return
 
         # error message if not all entries filled else add ticker to db
         if len(symbol) == 0 or not price or not pct_dec or not pct_inc:
             messagebox.showinfo('ERROR: MISSING REQUIRED FIELDS', \
-                                   "'Ticker Symbol', 'Price', and '% Change to"
-                                   " notify are required fields.")
-        elif symbol not in get_symbols()[0]:
-            messagebox.showinfo('ERROR: INVALID TICKER SYMBOL', \
-                                'Invalid ticker symbol. Please re-enter info.')
+                                   "'Ticker Symbol', 'Price', and '% Dec' and "
+                                   "'% Inc' are required fields.")
         else: 
             db = create_connection('tickers.db')
             cursor = db.cursor()    
             cursor.execute("""INSERT INTO symbols (ticker, price, pct_dec, pct_inc,
             price_low, price_high) VALUES (?, ?, ?, ?, ?, ?);""", \
-            (symbol, price, pct_dec, pct_inc, price_low, price_high)) 
+            (symbol, '{:.2f}'.format(price), '{:.2f}'.format(pct_dec), \
+             '{:.2f}'.format(pct_inc), '{:.2f}'.format(price_low), \
+             '{:.2f}'.format(price_high))) 
             
             close_connection(db)
             
@@ -247,9 +246,9 @@ class GUI:
         top.geometry('{}x{}'.format(w, h))
         
         #create containers for widgets
-        top_row = tk.Frame(top, width=w, height=round(h*.075), bg='blue')
-        mid_row = tk.Frame(top, width=w, height=round(h*.75), bg='green')
-        bot_row = tk.Frame(top, width=w, height=round(h*.075), bg='red')
+        top_row = tk.Frame(top, width=w, height=round(h*.05), bg='blue')
+        mid_row = tk.Frame(top, width=w, height=round(h*.75), bg='yellow')
+        bot_row = tk.Frame(top, width=w, height=round(h*.05), bg='red')
         
         #layout containers
         top.grid_rowconfigure(0, weight=1)
@@ -278,7 +277,7 @@ class GUI:
         title.grid(row=0)
         for col_name in range(num_cols):
             h = tk.Label(mid_row, text=col_names[col_name], font='Times 20', \
-                         fg='black', bg='yellow', relief='sunken', bd=3)
+                         fg='black', bg='yellow')
             h.grid(row=0, column=col_name)
         cursor.execute("""SELECT ticker FROM symbols""")
         portfolio = cursor.fetchall()        
@@ -288,16 +287,15 @@ class GUI:
             ticker_info = cursor.fetchall()
             for col in range(num_cols):                                
                 text = ticker_info[0][col]
-                b = tk.Label(mid_row, text=text, bd=1, fg='black', \
-                             font='Times 20', bg='yellow', relief='sunken', \
-                             padx=20, pady=10)
+                b = tk.Label(mid_row, text=text, fg='black', \
+                             font='Times 20', bg='yellow', padx=20, pady=10)
                 b.grid(row=row+1, column=col)
         
         #create 'dismiss' button
         dismiss_button = tk.Button(bot_row, text='Dismiss', command=top.destroy, \
                                    font='Times 20', takefocus=1)
         #layout 'dismiss' button
-        dismiss_button.grid(row=0)
+        dismiss_button.grid(row=0, sticky='n')
         
         #save changes to tickers.db and close connection
         close_connection(db)
